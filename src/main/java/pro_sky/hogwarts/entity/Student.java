@@ -1,15 +1,20 @@
 package pro_sky.hogwarts.entity;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.Data;
 
+@Data
 @Entity
 @Table(name = "student")
 public class Student {
     @Id
-    @GeneratedValue
-    private String id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private long id;
+    private String name;
+    private int age;
+
+    @ManyToOne
+    @JoinColumn(name = "faculty-id")
+    private Faculty faculty;
 }
