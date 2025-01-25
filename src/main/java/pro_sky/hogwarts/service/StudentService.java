@@ -10,13 +10,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class StudentService {
 
     private final StudentRepository studentRepository;
-
-    public StudentService(StudentRepository studentRepository) {
-        this.studentRepository = studentRepository;
-    }
 
     public Student createStudent(Student student) {
         return studentRepository.save(student);
@@ -42,5 +39,9 @@ public class StudentService {
         return getAllStudents().stream()
                 .filter(e -> e.getAge() == age)
                 .collect(Collectors.toList());
+    }
+
+    public Collection<Student> findByAgeBetween(int minAge, int maxAge) {
+        return studentRepository.findByAgeBetween(minAge, maxAge);
     }
 }

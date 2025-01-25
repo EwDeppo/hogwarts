@@ -1,6 +1,5 @@
 package pro_sky.hogwarts.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,9 +11,9 @@ import java.util.Collection;
 import java.util.Collections;
 
 @RestController
-@RequestMapping("/student")
-@RequiredArgsConstructor
+@RequestMapping("student")
 public class StudentController {
+
     @Autowired
     private StudentService studentService;
 
@@ -58,5 +57,17 @@ public class StudentController {
             return ResponseEntity.ok(studentService.findByAge(age));
         }
         return ResponseEntity.ok(Collections.emptyList());
+    }
+
+    @GetMapping
+    public ResponseEntity<Collection<Student>> getStudentsByAgeBetween(@RequestParam(required = false) int min,
+                                                                       @RequestParam(required = false) int max) {
+        if (min > 0 && max > 0) {
+            if (min < max) {
+                return ResponseEntity.ok(studentService.findByAgeBetween(min, max));
+            }
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+        return ResponseEntity.ok(studentService.getAllStudents());
     }
 }

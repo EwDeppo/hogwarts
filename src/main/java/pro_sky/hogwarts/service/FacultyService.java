@@ -41,4 +41,12 @@ public class FacultyService {
                 .filter(e -> Objects.equals(e.getColor(), color))
                 .collect(Collectors.toList());
     }
+
+    public Collection<Faculty> findFacultyByName(String name) {
+        return facultyRepositiry.findFacultyByNameContainsIgnoreCase(name);
+    }
+
+    public Collection<Faculty> findFacultyByColor(String color) {
+        return facultyRepositiry.findFacultyByColorContainsIgnoreCase(color);
+    }
 }

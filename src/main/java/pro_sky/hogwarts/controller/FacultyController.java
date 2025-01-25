@@ -1,6 +1,5 @@
 package pro_sky.hogwarts.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +12,6 @@ import java.util.Collections;
 
 @RestController
 @RequestMapping("faculty")
-@RequiredArgsConstructor
 public class FacultyController {
 
     @Autowired
@@ -55,9 +53,21 @@ public class FacultyController {
 
     @GetMapping("/color")
     public ResponseEntity<Collection<Faculty>> findByColor(@RequestParam(required = false) String color) {
-        if (color == null && !color.isBlank()) {
+        if (color != null && !color.isBlank()) {
             return ResponseEntity.ok(facultyService.findByColor(color));
         }
         return ResponseEntity.ok(Collections.emptyList());
+    }
+
+    @GetMapping
+    public ResponseEntity<Collection<Faculty>> findFaculty(@RequestParam(required = false) String name,
+                                                           @RequestParam(required = false) String color) {
+        if (name != null && !name.isBlank()) {
+            return ResponseEntity.ok(facultyService.findFacultyByName(name));
+        }
+        if (color != null && !color.isBlank()) {
+            return ResponseEntity.ok(facultyService.findFacultyByColor(color));
+        }
+        return ResponseEntity.ok(facultyService.getAllFaculty());
     }
 }
