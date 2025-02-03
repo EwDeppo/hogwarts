@@ -7,8 +7,8 @@ import pro_sky.hogwarts.entity.Faculty;
 import java.util.Collection;
 
 @Repository
-public interface FacultyRepositiry extends JpaRepository<Faculty, Long> {
-    Collection<Faculty> findFacultyByNameContainsIgnoreCase(String name);
+public interface FacultyRepository extends JpaRepository<Faculty, Long> {
+    Collection<Faculty> findByNameContainsIgnoreCase(String name);
 
-    Collection<Faculty> findFacultyByColorContainsIgnoreCase(String color);
+    Collection<Faculty> findByColorIgnoreCase(String color);
 }

@@ -1,25 +1,28 @@
 package pro_sky.hogwarts.service;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pro_sky.hogwarts.entity.Student;
 import pro_sky.hogwarts.repository.StudentRepository;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class StudentService {
 
+    @Autowired
     private final StudentRepository studentRepository;
+
+    public StudentService(StudentRepository studentRepository) {
+        this.studentRepository = studentRepository;
+    }
 
     public Student createStudent(Student student) {
         return studentRepository.save(student);
     }
 
-    public Student findStudent(Long id) {
+    public Student findStudent(long id) {
         return studentRepository.findById(id).get();
     }
 
@@ -27,21 +30,31 @@ public class StudentService {
         return studentRepository.save(student);
     }
 
-    public void deleteStudent(Long id) {
+    public void deleteStudent(long id) {
         studentRepository.deleteById(id);
     }
 
-    public Collection<Student> getAllStudents() {
+    public Collection<Student> findStudentsByAge(Long age) {
+        return studentRepository.findStudentByAge(age);
+    }
+
+    public Collection<Student> findAllStudent() {
         return studentRepository.findAll();
     }
 
-    public List<Student> findByAge(int age) {
-        return getAllStudents().stream()
-                .filter(e -> e.getAge() == age)
-                .collect(Collectors.toList());
+    public Collection<Student> findByAgeBetween(Long min, Long max) {
+        return studentRepository.findByAgeBetween(min, max);
     }
 
-    public Collection<Student> findByAgeBetween(int minAge, int maxAge) {
-        return studentRepository.findByAgeBetween(minAge, maxAge);
+    public int getStudents() {
+        return studentRepository.getStudents();
+    }
+
+    public int getAverageAge() {
+        return studentRepository.getAverageAge();
+    }
+
+    public List<Student> getLastFiveStudents() {
+        return studentRepository.getLastFiveStudents();
     }
 }

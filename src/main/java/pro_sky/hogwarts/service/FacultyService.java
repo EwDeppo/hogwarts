@@ -1,52 +1,46 @@
 package pro_sky.hogwarts.service;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 import pro_sky.hogwarts.entity.Faculty;
-import pro_sky.hogwarts.repository.FacultyRepositiry;
+import pro_sky.hogwarts.repository.FacultyRepository;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class FacultyService {
-    private final FacultyRepositiry facultyRepositiry;
+    @Autowired
+    private FacultyRepository facultyRepository;
 
-    public Faculty createFaculty(@RequestBody Faculty faculty) {
-        return facultyRepositiry.save(faculty);
+    public FacultyService(FacultyRepository facultyRepository) {
+        this.facultyRepository = facultyRepository;
     }
 
-    public Faculty findFaculty(Long id) {
-        return facultyRepositiry.findById(id).get();
+    public Faculty createFaculty(Faculty faculty) {
+        return facultyRepository.save(faculty);
+    }
+
+    public Faculty findFaculty(long id) {
+        return facultyRepository.findById(id).get();
     }
 
     public Faculty editFaculty(Faculty faculty) {
-        return facultyRepositiry.save(faculty);
+        return facultyRepository.save(faculty);
     }
 
-    public void deleteFaculty(Long id) {
-        facultyRepositiry.deleteById(id);
+    public void deleteFaculty(long id) {
+        facultyRepository.deleteById(id);
     }
 
-    public Collection<Faculty> getAllFaculty() {
-        return facultyRepositiry.findAll();
+    public Collection<Faculty> findByName(String name) {
+        return facultyRepository.findByNameContainsIgnoreCase(name);
     }
 
-    public List<Faculty> findByColor(String color) {
-        return getAllFaculty().stream()
-                .filter(e -> Objects.equals(e.getColor(), color))
-                .collect(Collectors.toList());
+    public Collection<Faculty> findByColor(String color) {
+        return facultyRepository.findByColorIgnoreCase(color);
     }
 
-    public Collection<Faculty> findFacultyByName(String name) {
-        return facultyRepositiry.findFacultyByNameContainsIgnoreCase(name);
-    }
-
-    public Collection<Faculty> findFacultyByColor(String color) {
-        return facultyRepositiry.findFacultyByColorContainsIgnoreCase(color);
+    public Collection<Faculty> findAllFaculty() {
+        return facultyRepository.findAll();
     }
 }

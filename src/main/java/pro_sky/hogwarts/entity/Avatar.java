@@ -1,25 +1,27 @@
 package pro_sky.hogwarts.entity;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
 @Entity
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "student")
-public class Student {
+public class Avatar {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    private Long id;
 
-    private String name;
-    private int age;
+    private String filePath;
+    private long fileSize;
+    private String mediaType;
 
-    @ManyToOne
-    @JoinColumn(name = "faculty_id")
-    private Faculty faculty;
+    @Lob
+    private byte[] data;
+
+    @OneToOne
+    @JoinColumn(name = "student_id")
+    private Student student;
 }
