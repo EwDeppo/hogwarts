@@ -6,6 +6,7 @@ import pro_sky.hogwarts.entity.Faculty;
 import pro_sky.hogwarts.repository.FacultyRepository;
 
 import java.util.Collection;
+import java.util.List;
 
 @Service
 public class FacultyService {
