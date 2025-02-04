@@ -1,0 +1,2 @@
+create table student (id real, name text primary key, age INTEGER, faculty_id text references (id);
+create table faculty (id real, name text primary key, color text text primary key, student text primary key);
