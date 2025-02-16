@@ -17,10 +17,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 
 @RestController
-@RequestMapping("student")
+@RequestMapping("/student")
 public class StudentController {
 
 
@@ -39,7 +40,7 @@ public class StudentController {
 
     @GetMapping("{id}") // GET http://localhost:8080/student/59
     public ResponseEntity<Student> getStudentInfo(@PathVariable long id) {
-        Student student = studentService.findStudent(id);
+        Student student = studentService.findStudentById(id);
         if (student == null) {
             return ResponseEntity.notFound().build();
         }
@@ -61,7 +62,7 @@ public class StudentController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping
+    @GetMapping("/get")
     public ResponseEntity findStudents(@RequestParam(required = false) Long age,
                                        @RequestParam(required = false) Long min,
                                        @RequestParam(required = false) Long max) {
@@ -121,15 +122,15 @@ public class StudentController {
         return ResponseEntity.ok(average);
     }
 
-    @GetMapping(value = "lastFive")
+    @GetMapping(value = "/lastFive")
     public ResponseEntity<List<Student>> getLastFiveStudents() {
         List<Student> students = studentService.getLastFiveStudents();
         return ResponseEntity.ok(students);
     }
 
-    @GetMapping("{name}")
-    public ResponseEntity<List<Student>> findStudentsByName(@PathVariable("name") String name) {
-        List<Student> students = studentService.findStudentsByName(name);
+    @GetMapping("/get/{name}")
+    public ResponseEntity<Collection<Student>> findStudentsByName(@PathVariable("name") String name) {
+        Collection<Student> students = studentService.findStudentsByName(name);
         return ResponseEntity.ok(students);
     }
 }

@@ -9,7 +9,7 @@ import pro_sky.hogwarts.service.FacultyService;
 import java.util.Collection;
 
 @RestController
-@RequestMapping("faculty")
+@RequestMapping("/faculty")
 public class FacultyController {
 
     private final FacultyService facultyService;
@@ -25,7 +25,7 @@ public class FacultyController {
 
     @GetMapping("{id}")
     public ResponseEntity<Faculty> getFacultyInfo(@PathVariable Long id) {
-        Faculty faculty = facultyService.findFaculty(id);
+        Faculty faculty = facultyService.findFacultyById(id);
         if (faculty == null) {
             return ResponseEntity.notFound().build();
         }
@@ -38,7 +38,7 @@ public class FacultyController {
         if (foundFaculty == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-        return ResponseEntity.ok(foundFaculty);
+        return ResponseEntity.ok(facultyService.editFaculty(foundFaculty));
     }
 
     @DeleteMapping("{id}") //DELETE http://localhost:8080/faculty/12
@@ -47,20 +47,21 @@ public class FacultyController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/find")
-    public ResponseEntity<Collection<Faculty>> getFacultyByColor(@RequestParam("nameOrColor") String nameOrColor) {
-        return ResponseEntity.ok(facultyService.findByName(nameOrColor));
+    @GetMapping("/get") //POST http://localhost:8080/faculty
+    public ResponseEntity<Collection<Faculty>> findAll(@RequestParam(required = false) String name,
+                                                       @RequestParam(required = false) String color) {
+        if (name != null) {
+            return ResponseEntity.ok(facultyService.findByNameOrColor(name));
+        }
+        if (color != null) {
+            return ResponseEntity.ok(facultyService.findByNameOrColor(color));
+        }
+        return ResponseEntity.ok(facultyService.findAll());
     }
 
-    @GetMapping //POST http://localhost:8080/faculty/12
-    public ResponseEntity findFaculties(@RequestParam(required = false) String name,
-                                        @RequestParam(required = false) String color) {
-        if (name != null && name.isBlank()) {
-            return ResponseEntity.ok(facultyService.findByName(name));
-        }
-        if (color != null && color.isBlank()) {
-            return ResponseEntity.ok(facultyService.findByColor(color));
-        }
-        return ResponseEntity.ok(facultyService.findAllFaculty());
+    @GetMapping("/longName")
+    public ResponseEntity<String> getLongName() {
+        String result = facultyService.getLongName();
+        return ResponseEntity.ok(result);
     }
 }

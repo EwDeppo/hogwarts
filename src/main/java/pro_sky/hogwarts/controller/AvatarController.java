@@ -13,7 +13,7 @@ import java.util.Collection;
 import java.util.List;
 
 @RestController
-@RequestMapping("avatar")
+@RequestMapping("/avatar")
 public class AvatarController {
 
     @Autowired

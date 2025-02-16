@@ -1,18 +1,19 @@
 package pro_sky.hogwarts.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.Collection;
-
-@Data
+@Getter
+@Setter
 @Entity
-@AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "faculty")
+@JsonIgnoreProperties(value = "students")
 public class Faculty {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

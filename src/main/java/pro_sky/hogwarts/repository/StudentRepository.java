@@ -9,13 +9,12 @@ import java.util.Collection;
 import java.util.List;
 
 @Repository
-public interface StudentRepository extends JpaRepository<Student,
-        Long> {
+public interface StudentRepository extends JpaRepository<Student, Long> {
     Collection<Student> findStudentByAge(Long age);
 
     Collection<Student> findByAgeBetween(Long min, Long max);
 
-    List<Student> findStudentsByName(String name);
+    Collection<Student> findStudentsByName(String name);
 
     @Query(value = "SELECT COUNT(*) from student", nativeQuery = true)
     int getStudents();
