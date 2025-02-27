@@ -1,8 +1,7 @@
 package pro_sky.hogwarts.service;
 
 import jakarta.transaction.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -22,12 +21,11 @@ import java.util.Collection;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
 @Service
+@Slf4j
 @Transactional
 public class AvatarService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AvatarService.class);
-
-    @Value("${students.avatar.dir.path}")
+    @Value("avatar")
     private String avatarDir;
 
     private final StudentService studentService;
@@ -38,28 +36,28 @@ public class AvatarService {
         this.avatarRepository = avatarRepository;
     }
 
-    public void uploadAvatar(Long studentId, MultipartFile avatarFile) throws IOException {
-        Student student = studentService.findStudentById(studentId);
-        logger.debug("An object of class 'Student' is created by ID - {}", studentId);
+    public void uploadAvatar(Long student_id, MultipartFile avatarFile) throws IOException {
+        var student = studentService.findStudentById(student_id);
+        log.debug("An object of class 'Student' is created by ID - {}", student_id);
 
-        Path filePath = Path.of(avatarDir, studentId + "." + getExtension(avatarFile.getOriginalFilename()));
-        logger.debug("Path to the directory with downloaded files");
+        Path filePath = Path.of(avatarDir, student_id + "." + getExtension(avatarFile.getOriginalFilename()));
+        log.debug("Path to the directory with downloaded files");
         Files.createDirectories(filePath.getParent());
-        logger.debug("Create a directory for storing data");
+        log.debug("Create a directory for storing data");
         Files.deleteIfExists(filePath);
-        logger.debug("Remove a file from the directory if it already exists");
+        log.debug("Remove a file from the directory if it already exists");
 
         try (InputStream is = avatarFile.getInputStream();
              OutputStream os = Files.newOutputStream(filePath, CREATE_NEW);
              BufferedInputStream bis = new BufferedInputStream(is, 1024);
              BufferedOutputStream bos = new BufferedOutputStream(os, 1024);
         ) {
-            logger.debug("Create input - {} and output - {} stream to read and transfer data", is, os);
+            log.debug("Create input - {} and output - {} stream to read and transfer data", is, os);
             bis.transferTo(bos);
-            logger.debug("Starting the data transfer process");
+            log.debug("Starting the data transfer process");
         }
 
-        Avatar avatar = findAvatar(studentId);
+        var avatar = findAvatar(student_id);
         avatar.setStudent(student);
         avatar.setFilePath(filePath.toString());
         avatar.setFileSize(avatarFile.getSize());
@@ -67,11 +65,11 @@ public class AvatarService {
         avatar.setData(generateImagePreview(filePath));
 
         avatarRepository.save(avatar);
-        logger.info("Save avatar for student");
+        log.info("Save avatar for student");
     }
 
     public Avatar findAvatar(Long studentId) {
-        logger.info("Was invoked method for find avatar by ID student - {}", studentId);
+        log.info("Was invoked method for find avatar by ID student - {}", studentId);
         return avatarRepository.findByStudentId(studentId).orElse(new Avatar());
     }
 
@@ -80,7 +78,7 @@ public class AvatarService {
              BufferedInputStream bis = new BufferedInputStream(is, 1024);
              ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             BufferedImage image = ImageIO.read(bis);
-            logger.debug("Create input - {} stream to read and transfer data", is);
+            log.debug("Create input - {} stream to read and transfer data", is);
 
             int height = image.getHeight() / (image.getWidth() / 100);
             BufferedImage preview = new BufferedImage(100, height, image.getType());
@@ -89,19 +87,19 @@ public class AvatarService {
             graphics.dispose();
 
             ImageIO.write(preview, getExtension(filePath.getFileName().toString()), baos);
-            logger.info("A method was called to reduce the file extension");
+            log.info("A method was called to reduce the file extension");
             return baos.toByteArray();
         }
     }
 
     private String getExtension(String fileName) {
-        logger.info("A method was called to find the file extension");
+        log.info("A method was called to find the file extension");
         return fileName.substring(fileName.lastIndexOf(".") + 1);
     }
 
     public Collection<Avatar> findAll(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page - 1, size);
-        logger.info("Was invoked method for find avatars");
+        log.info("Was invoked method for find avatars");
         return avatarRepository.findAll(pageRequest).getContent();
     }
 }

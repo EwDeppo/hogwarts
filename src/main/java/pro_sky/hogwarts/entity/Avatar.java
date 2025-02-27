@@ -1,14 +1,14 @@
 package pro_sky.hogwarts.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class Avatar {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -22,6 +22,5 @@ public class Avatar {
     private byte[] data;
 
     @OneToOne
-    @JoinColumn(name = "student_id")
     private Student student;
 }

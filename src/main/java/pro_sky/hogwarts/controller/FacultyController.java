@@ -1,12 +1,12 @@
 package pro_sky.hogwarts.controller;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pro_sky.hogwarts.entity.Faculty;
 import pro_sky.hogwarts.service.FacultyService;
 
 import java.util.Collection;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/faculty")
@@ -18,7 +18,7 @@ public class FacultyController {
         this.facultyService = facultyService;
     }
 
-    @PostMapping //GET http://localhost:8080/faculty
+    @PostMapping
     public Faculty createFaculty(@RequestBody Faculty faculty) {
         return facultyService.createFaculty(faculty);
     }
@@ -32,36 +32,32 @@ public class FacultyController {
         return ResponseEntity.ok(faculty);
     }
 
-    @PutMapping //PUT http://localhost:8080/faculty
-    public ResponseEntity<Faculty> editFaculty(@RequestBody Faculty faculty) {
-        Faculty foundFaculty = facultyService.editFaculty(faculty);
-        if (foundFaculty == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-        return ResponseEntity.ok(facultyService.editFaculty(foundFaculty));
+    @PutMapping("{id}/faculty")
+    public Faculty editFaculty(@PathVariable Long id,
+                                               @RequestBody Faculty faculty) {
+        return facultyService.editFaculty(id, faculty);
     }
 
-    @DeleteMapping("{id}") //DELETE http://localhost:8080/faculty/12
+    @DeleteMapping("{id}")
     public ResponseEntity deleteFaculty(@PathVariable long id) {
         facultyService.deleteFaculty(id);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/get") //POST http://localhost:8080/faculty
+    @GetMapping("/get")
     public ResponseEntity<Collection<Faculty>> findAll(@RequestParam(required = false) String name,
                                                        @RequestParam(required = false) String color) {
         if (name != null) {
-            return ResponseEntity.ok(facultyService.findByNameOrColor(name));
+            return ResponseEntity.ok(facultyService.findByNameOrColorContainingIgnoreCase(name));
         }
         if (color != null) {
-            return ResponseEntity.ok(facultyService.findByNameOrColor(color));
+            return ResponseEntity.ok(facultyService.findByNameOrColorContainingIgnoreCase(color));
         }
         return ResponseEntity.ok(facultyService.findAll());
     }
 
     @GetMapping("/longName")
-    public ResponseEntity<String> getLongName() {
-        String result = facultyService.getLongName();
-        return ResponseEntity.ok(result);
+    public Optional<String> getLongName() {
+        return facultyService.getLongName();
     }
 }

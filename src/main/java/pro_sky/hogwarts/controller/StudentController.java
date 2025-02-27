@@ -1,5 +1,6 @@
 package pro_sky.hogwarts.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -33,13 +34,15 @@ public class StudentController {
         this.avatarService = avatarService;
     }
 
-    @PostMapping
+    @Operation(summary = "Добавление студента")
+    @PostMapping("/add")
     public Student createStudent(@RequestBody Student student) {
         return studentService.createStudent(student);
     }
 
-    @GetMapping("{id}") // GET http://localhost:8080/student/59
-    public ResponseEntity<Student> getStudentInfo(@PathVariable long id) {
+    @Operation(summary = "Поиск студента по ID")
+    @GetMapping("/get/{id}") // GET http://localhost:8080/student/59
+    public ResponseEntity<Student> getStudentById(@PathVariable long id) {
         Student student = studentService.findStudentById(id);
         if (student == null) {
             return ResponseEntity.notFound().build();
@@ -47,45 +50,48 @@ public class StudentController {
         return ResponseEntity.ok(student);
     }
 
-    @PutMapping //PUT http://localhost:8080/student
-    public ResponseEntity<Student> editStudent(@RequestBody Student student) {
-        Student foundStudent = studentService.editStudent(student);
-        if (foundStudent == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-        return ResponseEntity.ok(foundStudent);
+    @Operation(summary = "Обновление студента")
+    @PutMapping("/update/{id}/student") //PUT http://localhost:8080/student
+    public ResponseEntity<Student> editStudent(@PathVariable Long id,
+                                               @RequestBody Student student) {
+        return ResponseEntity.ok(studentService.editStudent(id, student));
     }
 
-    @DeleteMapping("{id}") //DELETE http://localhost:8080/student/59
+    @Operation(summary = "Удаление студента")
+    @DeleteMapping("/delete/{id}") //DELETE http://localhost:8080/student/59
     public ResponseEntity deleteStudent(@PathVariable long id) {
         studentService.deleteStudent(id);
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Поиск всех студентов/по возрасту/по возрасту в промежутке между")
     @GetMapping("/get")
-    public ResponseEntity findStudents(@RequestParam(required = false) Long age,
-                                       @RequestParam(required = false) Long min,
-                                       @RequestParam(required = false) Long max) {
+    public ResponseEntity<Collection<Student>> findStudents(@RequestParam(required = false) Long age,
+                                                            @RequestParam(required = false) Long min,
+                                                            @RequestParam(required = false) Long max) {
         if (age != null) {
             return ResponseEntity.ok(studentService.findStudentsByAge(age));
         }
         if (min != null && max != null && min < max) {
             return ResponseEntity.ok(studentService.findByAgeBetween(min, max));
         }
-        return ResponseEntity.ok(studentService.findAllStudent());
+        return ResponseEntity.ok(studentService.findAllStudents());
     }
 
-    @PostMapping(value = "/{studentId}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> uploadAvatar(@PathVariable Long studentId, @RequestParam MultipartFile avatar) throws IOException {
+    @Operation(summary = "Добавление аватара")
+    @PostMapping(value = "/{student_id}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> uploadAvatar(@PathVariable Long student_id,
+                                               @RequestParam MultipartFile avatar) throws IOException {
         if (avatar.getSize() >= 1024 * 300) {
             return ResponseEntity.badRequest().body("File is too big");
         }
-        avatarService.uploadAvatar(studentId, avatar);
+        avatarService.uploadAvatar(student_id, avatar);
         return ResponseEntity.ok().build();
     }
 
+
     @GetMapping(value = "/{id}/avatar/preview")
-    public ResponseEntity<byte[]> downloadAvatar(@PathVariable Long id) {
+    public ResponseEntity<byte[]> downloadAvatarPreview(@PathVariable Long id) {
         Avatar avatar = avatarService.findAvatar(id);
 
         HttpHeaders headers = new HttpHeaders();
@@ -96,7 +102,7 @@ public class StudentController {
     }
 
     @GetMapping(value = "/{id}/avatar")
-    public void downloadAvatar(@PathVariable Long id, HttpServletResponse response) throws IOException {
+    public void downloadAvatarPreview(@PathVariable Long id, HttpServletResponse response) throws IOException {
         Avatar avatar = avatarService.findAvatar(id);
 
         Path path = Path.of(avatar.getFilePath());
@@ -132,6 +138,16 @@ public class StudentController {
     public ResponseEntity<Collection<Student>> findStudentsByName(@PathVariable("name") String name) {
         Collection<Student> students = studentService.findStudentsByName(name);
         return ResponseEntity.ok(students);
+    }
+
+    @GetMapping("/get/startA")
+    public ResponseEntity<Collection<String>> findAllStudentsStartWithA() {
+        return ResponseEntity.ok(studentService.findAllStudentsStartWithA());
+    }
+
+    @GetMapping("/getAverageAge")
+    public Double getStudentAverageAge() {
+        return studentService.getStudentAverageAge();
     }
 }
 
