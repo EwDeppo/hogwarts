@@ -1,65 +1,90 @@
 package pro_sky.hogwarts.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import pro_sky.hogwarts.entity.Student;
+import pro_sky.hogwarts.dto.StudentDto;
 import pro_sky.hogwarts.repository.StudentRepository;
 
-import java.util.Collection;
 import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class StudentService {
+
+    @Autowired
+    private final ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     @Autowired
     private final StudentRepository studentRepository;
 
-    public StudentService(StudentRepository studentRepository) {
-        this.studentRepository = studentRepository;
-    }
-
-    public Student createStudent(Student student) {
+    public StudentDto createStudent(Student student) {
         log.info("Was invoked method for create student - {}", student);
-        return studentRepository.save(student);
+        var savedStudent = studentRepository.save(student);
+        return convertDto(savedStudent);
     }
 
-    public Student editStudent(long id, Student student) {
-        var studentForUpdate = studentRepository.findById(id).orElseThrow(EntityNotFoundException::new);
-        log.info("Was invoked method for edit student - {}", student);
+    private StudentDto convertDto(Student student) {
+        var studentDto = new StudentDto();
+        studentDto.setId(student.getId());
+        studentDto.setName(student.getName());
+        studentDto.setAge(student.getAge());
+        return studentDto;
+    }
+
+    public Student editStudent(Long id, Student student) {
+        var studentForUpdate = studentRepository.findById(id).orElseThrow(() -> {
+            String errorMessage = "Student this ID " + id + " not found";
+            log.error(errorMessage);
+            return new EntityNotFoundException(errorMessage);
+        });
         studentForUpdate.setName(student.getName());
         studentForUpdate.setAge(student.getAge());
+        log.info("Was invoked method for edit student - {}", student);
         return studentRepository.save(studentForUpdate);
     }
 
     public void deleteStudent(long id) {
-        log.info("Was invoked method for delete student {}", id);
+        log.info("Was invoked method for delete student by id - {}", id);
         studentRepository.deleteById(id);
     }
 
     public Student findStudentById(long id) {
         log.info("Was invoked method for find student by {}", id);
-        return studentRepository.findById(id).get();
+        return studentRepository.findById(id).orElseThrow(() -> {
+            String errorMessage = "Student this ID " + id + " not found";
+            log.error(errorMessage);
+            return new EntityNotFoundException(errorMessage);
+        });
     }
 
-    public Collection<Student> findAllStudents() {
+    public List<Student> findAllStudents() {
         log.info("Was invoked method for find all students");
         return studentRepository.findAll();
     }
 
-    public Collection<Student> findStudentsByAge(Long age) {
+    public List<Student> findStudentsByAge(@NonNull Long age) {
         log.info("Was invoked method for find students by age {}", age);
         return studentRepository.findStudentByAge(age);
     }
 
-    public Collection<Student> findByAgeBetween(Long min, Long max) {
+    public List<Student> findByAgeBetween(@NonNull Long min, @NonNull Long max) {
         log.info("Was invoked method for find students by age between {} and {}", min, max);
+        if (min > max) {
+            log.error("Min age {} is greater than max age {}", min, max);
+            throw new IllegalArgumentException("Min age cannot be greater than max age");
+        }
         return studentRepository.findByAgeBetween(min, max);
     }
 
-    public Collection<String> findAllStudentsStartWithA() {
+    public List<String> findAllStudentsStartWithA() {
+        log.info("Was invoked method for find students start name with 'A'");
         return studentRepository.findAll()
                 .stream()
                 .map(Student::getName)
@@ -70,10 +95,11 @@ public class StudentService {
     }
 
     public Double getStudentAverageAge() {
+        log.info("Was invoked method find student average age");
         return studentRepository.findAll().stream()
                 .mapToInt(Student::getAge)
                 .average()
-                .orElseThrow();
+                .orElseThrow(EntityNotFoundException::new);
     }
 
     public int getStudents() {
@@ -91,7 +117,7 @@ public class StudentService {
         return studentRepository.getLastFiveStudents();
     }
 
-    public Collection<Student> findStudentsByName(String name) {
+    public List<Student> findStudentsByName(String name) {
         log.info("Was invoked method for find students by name - {}", name);
         return studentRepository.findAll().stream()
                 .filter(e -> e.getName().toLowerCase().contains(name.toLowerCase()))
@@ -100,32 +126,14 @@ public class StudentService {
 
     public void printNamesStudents() {
         List<Student> students = studentRepository.findAll();
-        new Thread(() -> {
+        threadPoolTaskExecutor.execute(() -> {
             System.out.println(students.get(0).getName());
             System.out.println(students.get(3).getName());
-        }).start();
+        });
 
-        new Thread(() -> {
+        threadPoolTaskExecutor.execute(() -> {
             System.out.println(students.get(1).getName());
             System.out.println(students.get(2).getName());
-        }).start();
-    }
-
-    public void printNamesStudentsSync() {
-        List<Student> students = studentRepository.findAll();
-
-        new Thread(() -> {
-            printName(students.get(0));
-            printName(students.get(3));
-        }).start();
-
-        new Thread(() -> {
-            printName(students.get(1));
-            printName(students.get(2));
-        }).start();
-    }
-
-    public synchronized void printName(Student student) {
-        System.out.println(student.getName());
+        });
     }
 }

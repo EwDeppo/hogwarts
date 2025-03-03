@@ -1,6 +1,7 @@
 package pro_sky.hogwarts.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,14 +16,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/avatar")
+@RequiredArgsConstructor
 public class AvatarController {
 
     @Autowired
     private AvatarService avatarService;
-
-    public AvatarController(AvatarService avatarService) {
-        this.avatarService = avatarService;
-    }
 
     @GetMapping
     public ResponseEntity<Collection<Avatar>> getAll(@RequestParam("page") Integer page,

@@ -7,7 +7,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pro_sky.hogwarts.entity.Avatar;
-import pro_sky.hogwarts.entity.Student;
 import pro_sky.hogwarts.repository.AvatarRepository;
 
 import javax.imageio.ImageIO;
@@ -25,7 +24,7 @@ import static java.nio.file.StandardOpenOption.CREATE_NEW;
 @Transactional
 public class AvatarService {
 
-    @Value("avatar")
+    @Value("${students.avatar.dir.path}")
     private String avatarDir;
 
     private final StudentService studentService;
