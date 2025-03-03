@@ -1,73 +1,61 @@
 package pro_sky.hogwarts.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import io.swagger.v3.oas.annotations.Operation;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pro_sky.hogwarts.dto.FacultyDto;
 import pro_sky.hogwarts.entity.Faculty;
 import pro_sky.hogwarts.service.FacultyService;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("faculty")
+@RequestMapping("/faculty")
+@RequiredArgsConstructor
 public class FacultyController {
 
-    @Autowired
-    private FacultyService facultyService;
+    private final FacultyService facultyService;
 
-    @GetMapping("{id}")
-    public ResponseEntity<Faculty> getFacultyInfo(@PathVariable Long id) {
-        Faculty faculty = facultyService.findFaculty(id);
-        if (faculty == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(faculty);
-    }
-
+    @Operation(summary = "Добавление факультета")
     @PostMapping
-    public Faculty createFaculty(Faculty faculty) {
+    public FacultyDto createFaculty(@RequestBody Faculty faculty) {
         return facultyService.createFaculty(faculty);
     }
 
-    @PutMapping
-    public ResponseEntity<Faculty> editFaculty(Faculty faculty) {
-        Faculty foundFaculty = facultyService.editFaculty(faculty);
-        if (faculty == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-        return ResponseEntity.ok(foundFaculty);
+    @Operation(summary = "Поиск факультета по ID")
+    @GetMapping("{id}")
+    public ResponseEntity<Faculty> getFacultyById(@PathVariable Long id) {
+        return ResponseEntity.ok(facultyService.findFacultyById(id));
     }
 
+    @Operation(summary = "Обновление факультета")
+    @PutMapping("{id}")
+    public ResponseEntity<Faculty> editFaculty(@PathVariable Long id,
+                                               @RequestBody Faculty faculty) {
+        return ResponseEntity.ok(facultyService.editFaculty(id, faculty));
+    }
+
+    @Operation(summary = "Удаление студента")
     @DeleteMapping("{id}")
-    public ResponseEntity<Void> deleteFaculty(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteFaculty(@PathVariable long id) {
         facultyService.deleteFaculty(id);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/all")
-    public ResponseEntity<Collection<Faculty>> getAllFaculty() {
-        return ResponseEntity.ok(facultyService.getAllFaculty());
-    }
-
-    @GetMapping("/color")
-    public ResponseEntity<Collection<Faculty>> findByColor(@RequestParam(required = false) String color) {
-        if (color != null && !color.isBlank()) {
-            return ResponseEntity.ok(facultyService.findByColor(color));
-        }
-        return ResponseEntity.ok(Collections.emptyList());
-    }
-
     @GetMapping
-    public ResponseEntity<Collection<Faculty>> findFaculty(@RequestParam(required = false) String name,
-                                                           @RequestParam(required = false) String color) {
-        if (name != null && !name.isBlank()) {
-            return ResponseEntity.ok(facultyService.findFacultyByName(name));
-        }
-        if (color != null && !color.isBlank()) {
-            return ResponseEntity.ok(facultyService.findFacultyByColor(color));
-        }
-        return ResponseEntity.ok(facultyService.getAllFaculty());
+    public ResponseEntity<List<Faculty>> findAll() {
+        return ResponseEntity.ok(facultyService.findAllFaculties());
+    }
+
+    @GetMapping("{nameOrColor}")
+    public ResponseEntity<List<Faculty>> getFacultyByNameOrColor(@PathVariable String nameOrColor) {
+        return ResponseEntity.ok(facultyService.findByNameOrColorContainingIgnoreCase(nameOrColor));
+    }
+
+    @GetMapping("/longName")
+    public ResponseEntity<Optional<String>> getLongName() {
+        return ResponseEntity.ok(facultyService.getLongName());
     }
 }

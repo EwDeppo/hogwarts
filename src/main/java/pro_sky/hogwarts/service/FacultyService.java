@@ -1,52 +1,82 @@
 package pro_sky.hogwarts.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
+import pro_sky.hogwarts.dto.FacultyDto;
 import pro_sky.hogwarts.entity.Faculty;
-import pro_sky.hogwarts.repository.FacultyRepositiry;
+import pro_sky.hogwarts.repository.FacultyRepository;
 
-import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class FacultyService {
-    private final FacultyRepositiry facultyRepositiry;
 
-    public Faculty createFaculty(@RequestBody Faculty faculty) {
-        return facultyRepositiry.save(faculty);
+    @Autowired
+    private FacultyRepository facultyRepository;
+
+    public FacultyDto createFaculty(Faculty faculty) {
+        log.info("Was invoked method for create faculty - {}", faculty);
+        var savedFaculty = facultyRepository.save(faculty);
+        return convertDto(savedFaculty);
     }
 
-    public Faculty findFaculty(Long id) {
-        return facultyRepositiry.findById(id).get();
+    private FacultyDto convertDto(Faculty faculty) {
+        var facultyDto = new FacultyDto();
+        facultyDto.setId(faculty.getId());
+        facultyDto.setName(facultyDto.getName());
+        facultyDto.setColor(facultyDto.getColor());
+        return facultyDto;
     }
 
-    public Faculty editFaculty(Faculty faculty) {
-        return facultyRepositiry.save(faculty);
+    public Faculty editFaculty(long id, Faculty faculty) {
+        var facultyForUpdate = facultyRepository.findById(id).orElseThrow(() -> {
+            String errorMessage = "Faculty this ID " + id + " not found";
+            log.error(errorMessage);
+            return new EntityNotFoundException(errorMessage);
+        });
+        facultyForUpdate.setName(faculty.getName());
+        facultyForUpdate.setColor(faculty.getColor());
+        log.info("Was invoked method for edit faculty - {}", faculty);
+        return facultyRepository.save(facultyForUpdate);
     }
 
-    public void deleteFaculty(Long id) {
-        facultyRepositiry.deleteById(id);
+    public void deleteFaculty(long id) {
+        log.info("Was invoked method for delete faculty by id - {}", id);
+        facultyRepository.deleteById(id);
     }
 
-    public Collection<Faculty> getAllFaculty() {
-        return facultyRepositiry.findAll();
+    public Faculty findFacultyById(long id) {
+        log.info("Was invoked method for find faculty by id - {}", id);
+        return facultyRepository.findById(id).orElseThrow(() -> {
+            String errorMessage = "Faculty this ID " + id + " not found";
+            log.error(errorMessage);
+            return new EntityNotFoundException(errorMessage);
+        });
     }
 
-    public List<Faculty> findByColor(String color) {
-        return getAllFaculty().stream()
-                .filter(e -> Objects.equals(e.getColor(), color))
-                .collect(Collectors.toList());
+    public List<Faculty> findAllFaculties() {
+        log.info("Was invoked method for find all faculties");
+        return facultyRepository.findAll();
     }
 
-    public Collection<Faculty> findFacultyByName(String name) {
-        return facultyRepositiry.findFacultyByNameContainsIgnoreCase(name);
+    public List<Faculty> findByNameOrColorContainingIgnoreCase(String query) {
+        log.info("Was invoked method for find faculty by name or color");
+        return facultyRepository.findAll().stream()
+                .filter(e -> e.getName().toLowerCase().contains(query.toLowerCase()) || e.getColor().toLowerCase().contains(query.toLowerCase()))
+                .toList();
     }
 
-    public Collection<Faculty> findFacultyByColor(String color) {
-        return facultyRepositiry.findFacultyByColorContainsIgnoreCase(color);
+    public Optional<String> getLongName() {
+        log.info("Was invoked method for find faculty with the long name");
+        return facultyRepository.findAll().stream()
+                .map(Faculty::getName)
+                .max(Comparator.comparingInt(String::length));
     }
 }
