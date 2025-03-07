@@ -12,6 +12,7 @@ import pro_sky.hogwarts.dto.StudentDto;
 import pro_sky.hogwarts.repository.StudentRepository;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @Slf4j
@@ -64,9 +65,12 @@ public class StudentService {
         });
     }
 
-    public List<Student> findAllStudents() {
+    public List<StudentDto> findAllStudents() {
         log.info("Was invoked method for find all students");
-        return studentRepository.findAll();
+        var students = studentRepository.findAll();
+        return students.stream()
+                .map(this::convertDto)
+                .toList();
     }
 
     public List<Student> findStudentsByAge(@NonNull Long age) {
@@ -124,16 +128,11 @@ public class StudentService {
                 .toList();
     }
 
-    public void printNamesStudents() {
-        List<Student> students = studentRepository.findAll();
-        threadPoolTaskExecutor.execute(() -> {
-            System.out.println(students.get(0).getName());
-            System.out.println(students.get(3).getName());
-        });
-
-        threadPoolTaskExecutor.execute(() -> {
-            System.out.println(students.get(1).getName());
-            System.out.println(students.get(2).getName());
-        });
+    public CompletableFuture<List<Student>> printNamesStudents(String name) {
+        return CompletableFuture.supplyAsync(() -> {
+            List<Student> students = studentRepository.findStudentsByName(name);
+            log.info("Students with name {}", name);
+            return students;
+        }, threadPoolTaskExecutor);
     }
 }

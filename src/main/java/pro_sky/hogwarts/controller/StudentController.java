@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/student")
@@ -60,7 +61,7 @@ public class StudentController {
 
     @Operation(summary = "Поиск всех студентов")
     @GetMapping
-    public ResponseEntity<List<Student>> findStudents() {
+    public ResponseEntity<List<StudentDto>> findStudents() {
         return ResponseEntity.ok(studentService.findAllStudents());
     }
 
@@ -143,6 +144,11 @@ public class StudentController {
     @GetMapping("/getAverageAge")
     public Double getStudentAverageAge() {
         return studentService.getStudentAverageAge();
+    }
+
+    @GetMapping("name")
+    public CompletableFuture<List<Student>> printNamesStudents(@RequestParam String name) {
+        return studentService.printNamesStudents(name);
     }
 }
 

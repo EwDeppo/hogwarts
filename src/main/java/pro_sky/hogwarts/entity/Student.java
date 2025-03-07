@@ -1,6 +1,5 @@
 package pro_sky.hogwarts.entity;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;

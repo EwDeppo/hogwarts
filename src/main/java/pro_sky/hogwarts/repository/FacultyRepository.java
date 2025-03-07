@@ -6,5 +6,4 @@ import pro_sky.hogwarts.entity.Faculty;
 
 @Repository
 public interface FacultyRepository extends JpaRepository<Faculty, Long> {
-
 }
