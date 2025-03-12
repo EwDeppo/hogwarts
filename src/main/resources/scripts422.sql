@@ -1,0 +1,2 @@
+create table person (id SERIAL PRIMARY KEY, name TEXT NOT NULL, age INTEGER CHECK (age > 0), drivesLicense BOOLEAN);
+create table car (id SERIAL PRIMARY KEY, brand TEXT NOT NULL, model TEXT NOT NULL, price NUMERIC CHECK (price > 0), person_id TEXT REFERENCES person (id));

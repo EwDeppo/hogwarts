@@ -1,47 +1,127 @@
 package pro_sky.hogwarts.service;
 
+import jakarta.persistence.EntityNotFoundException;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import pro_sky.hogwarts.entity.Student;
+import pro_sky.hogwarts.dto.StudentDto;
+import pro_sky.hogwarts.mapper.StudentMapper;
 import pro_sky.hogwarts.repository.StudentRepository;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class StudentService {
 
+    private final ThreadPoolTaskExecutor threadPoolTaskExecutor;
     private final StudentRepository studentRepository;
+    private final StudentMapper studentMapper;
 
-    public Student createStudent(Student student) {
-        return studentRepository.save(student);
+    public StudentDto createStudent(StudentDto studentDto) {
+        log.info("Was invoked method for create student - {}", studentDto);
+        var saveStudent = studentMapper.fromStudentDto(studentDto);
+        var student = studentRepository.save(saveStudent);
+        return studentMapper.toStudentDto(student);
     }
 
-    public Student findStudent(Long id) {
-        return studentRepository.findById(id).get();
+    public Student editStudent(Long id, Student student) {
+        var studentForUpdate = studentRepository.findById(id).orElseThrow(() -> {
+            String errorMessage = "Student this ID " + id + " not found";
+            log.error(errorMessage);
+            return new EntityNotFoundException(errorMessage);
+        });
+        studentForUpdate.setName(student.getName());
+        studentForUpdate.setAge(student.getAge());
+        log.info("Was invoked method for edit student - {}", student);
+        return studentRepository.save(studentForUpdate);
     }
 
-    public Student editStudent(Student student) {
-        return studentRepository.save(student);
-    }
-
-    public void deleteStudent(Long id) {
+    public void deleteStudent(long id) {
+        log.info("Was invoked method for delete student by id - {}", id);
         studentRepository.deleteById(id);
     }
 
-    public Collection<Student> getAllStudents() {
-        return studentRepository.findAll();
+    public Student findStudentById(long id) {
+        log.info("Was invoked method for find student by {}", id);
+        return studentRepository.findById(id).orElseThrow(() -> {
+            String errorMessage = "Student this ID " + id + " not found";
+            log.error(errorMessage);
+            return new EntityNotFoundException(errorMessage);
+        });
     }
 
-    public List<Student> findByAge(int age) {
-        return getAllStudents().stream()
-                .filter(e -> e.getAge() == age)
-                .collect(Collectors.toList());
+    public List<StudentDto> findAllStudents() {
+        log.info("Was invoked method for find all students");
+        var students = studentRepository.findAll();
+        return studentMapper.toStudentsDtoList(students);
     }
 
-    public Collection<Student> findByAgeBetween(int minAge, int maxAge) {
-        return studentRepository.findByAgeBetween(minAge, maxAge);
+    public List<Student> findStudentsByAge(@NonNull Long age) {
+        log.info("Was invoked method for find students by age {}", age);
+        return studentRepository.findStudentByAge(age);
+    }
+
+    public List<Student> findByAgeBetween(@NonNull Long min, @NonNull Long max) {
+        log.info("Was invoked method for find students by age between {} and {}", min, max);
+        if (min > max) {
+            log.error("Min age {} is greater than max age {}", min, max);
+            throw new IllegalArgumentException("Min age cannot be greater than max age");
+        }
+        return studentRepository.findByAgeBetween(min, max);
+    }
+
+    public List<String> findAllStudentsStartWithA() {
+        log.info("Was invoked method for find students start name with 'A'");
+        return studentRepository.findAll()
+                .stream()
+                .map(Student::getName)
+                .map(String::toUpperCase)
+                .filter(s -> s.startsWith("A"))
+                .sorted(String::compareTo)
+                .toList();
+    }
+
+    public Double getStudentAverageAge() {
+        log.info("Was invoked method find student average age");
+        return studentRepository.findAll().stream()
+                .mapToInt(Student::getAge)
+                .average()
+                .orElseThrow(EntityNotFoundException::new);
+    }
+
+    public int getStudents() {
+        log.info("The method was called to display the number of students");
+        return studentRepository.getStudents();
+    }
+
+    public int getAverageAge() {
+        log.info("The method was called to display the average age of students");
+        return studentRepository.getAverageAge();
+    }
+
+    public List<Student> getLastFiveStudents() {
+        log.info("A method was called to display the last 5 students");
+        return studentRepository.getLastFiveStudents();
+    }
+
+    public List<Student> findStudentsByName(String name) {
+        log.info("Was invoked method for find students by name - {}", name);
+        return studentRepository.findAll().stream()
+                .filter(e -> e.getName().toLowerCase().contains(name.toLowerCase()))
+                .toList();
+    }
+
+    public CompletableFuture<List<Student>> printNamesStudents(String name) {
+        return CompletableFuture.supplyAsync(() -> {
+            List<Student> students = studentRepository.findStudentsByName(name);
+            log.info("Students with name {}", name);
+            return students;
+        }, threadPoolTaskExecutor);
     }
 }
