@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Entity
+@Entity(name = "student")
 @Setter
 @Getter
 @NoArgsConstructor

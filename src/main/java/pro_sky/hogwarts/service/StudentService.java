@@ -4,11 +4,11 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import pro_sky.hogwarts.entity.Student;
 import pro_sky.hogwarts.dto.StudentDto;
+import pro_sky.hogwarts.mapper.StudentMapper;
 import pro_sky.hogwarts.repository.StudentRepository;
 
 import java.util.List;
@@ -19,24 +19,15 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class StudentService {
 
-    @Autowired
     private final ThreadPoolTaskExecutor threadPoolTaskExecutor;
-
-    @Autowired
     private final StudentRepository studentRepository;
+    private final StudentMapper studentMapper;
 
-    public StudentDto createStudent(Student student) {
-        log.info("Was invoked method for create student - {}", student);
-        var savedStudent = studentRepository.save(student);
-        return convertDto(savedStudent);
-    }
-
-    private StudentDto convertDto(Student student) {
-        var studentDto = new StudentDto();
-        studentDto.setId(student.getId());
-        studentDto.setName(student.getName());
-        studentDto.setAge(student.getAge());
-        return studentDto;
+    public StudentDto createStudent(StudentDto studentDto) {
+        log.info("Was invoked method for create student - {}", studentDto);
+        var saveStudent = studentMapper.fromStudentDto(studentDto);
+        var student = studentRepository.save(saveStudent);
+        return studentMapper.toStudentDto(student);
     }
 
     public Student editStudent(Long id, Student student) {
@@ -68,9 +59,7 @@ public class StudentService {
     public List<StudentDto> findAllStudents() {
         log.info("Was invoked method for find all students");
         var students = studentRepository.findAll();
-        return students.stream()
-                .map(this::convertDto)
-                .toList();
+        return studentMapper.toStudentsDtoList(students);
     }
 
     public List<Student> findStudentsByAge(@NonNull Long age) {

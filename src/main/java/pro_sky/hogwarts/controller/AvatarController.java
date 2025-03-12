@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import pro_sky.hogwarts.entity.Avatar;
 import pro_sky.hogwarts.service.AvatarService;
 
+import java.util.List;
 import java.util.Collection;
 
 @RestController
@@ -20,7 +21,7 @@ public class AvatarController {
     @GetMapping
     public ResponseEntity<Collection<Avatar>> getAll(@RequestParam("page") Integer page,
                                                      @RequestParam("size") Integer size) {
-        Collection<Avatar> avatars = avatarService.findAll(page, size);
+        List<Avatar> avatars = avatarService.findAll(page, size);
         return ResponseEntity.ok(avatars);
     }
 }

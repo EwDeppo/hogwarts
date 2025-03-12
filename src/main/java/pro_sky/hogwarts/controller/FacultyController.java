@@ -20,8 +20,8 @@ public class FacultyController {
 
     @Operation(summary = "Добавление факультета")
     @PostMapping
-    public FacultyDto createFaculty(@RequestBody Faculty faculty) {
-        return facultyService.createFaculty(faculty);
+    public ResponseEntity<FacultyDto> createFaculty(@RequestBody Faculty faculty) {
+        return ResponseEntity.ok(facultyService.createFaculty(faculty));
     }
 
     @Operation(summary = "Поиск факультета по ID")
@@ -33,7 +33,7 @@ public class FacultyController {
     @Operation(summary = "Обновление факультета")
     @PutMapping("{id}")
     public ResponseEntity<FacultyDto> editFaculty(@PathVariable Long id,
-                                               @RequestBody Faculty faculty) {
+                                                  @RequestBody Faculty faculty) {
         return ResponseEntity.ok(facultyService.editFaculty(id, faculty));
     }
 

@@ -1,27 +1,35 @@
 package pro_sky.hogwarts.service;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import pro_sky.hogwarts.dto.AvatarDto;
 import pro_sky.hogwarts.entity.Avatar;
+import pro_sky.hogwarts.mapper.AvatarMapper;
 import pro_sky.hogwarts.repository.AvatarRepository;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.util.List;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
+import java.util.Optional;
 
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
 @Service
 @Slf4j
 @Transactional
+@RequiredArgsConstructor
 public class AvatarService {
 
     @Value("${students.avatar.dir.path}")
@@ -29,14 +37,9 @@ public class AvatarService {
 
     private final StudentService studentService;
     private final AvatarRepository avatarRepository;
-
-    public AvatarService(StudentService studentService, AvatarRepository avatarRepository) {
-        this.studentService = studentService;
-        this.avatarRepository = avatarRepository;
-    }
+    private final AvatarMapper avatarMapper;
 
     public void uploadAvatar(Long student_id, MultipartFile avatarFile) throws IOException {
-        var student = studentService.findStudentById(student_id);
         log.debug("An object of class 'Student' is created by ID - {}", student_id);
 
         Path filePath = Path.of(avatarDir, student_id + "." + getExtension(avatarFile.getOriginalFilename()));
@@ -56,20 +59,30 @@ public class AvatarService {
             log.debug("Starting the data transfer process");
         }
 
-        var avatar = findAvatar(student_id);
-        avatar.setStudent(student);
-        avatar.setFilePath(filePath.toString());
-        avatar.setFileSize(avatarFile.getSize());
-        avatar.setMediaType(avatarFile.getContentType());
-        avatar.setData(generateImagePreview(filePath));
-
-        avatarRepository.save(avatar);
+        var avatar = findAvatarById(student_id);
+        avatarMapper.fromAvatarDto(avatar);
         log.info("Save avatar for student");
     }
 
-    public Avatar findAvatar(Long studentId) {
+    public AvatarDto findAvatarById(Long studentId) {
         log.info("Was invoked method for find avatar by ID student - {}", studentId);
-        return avatarRepository.findByStudentId(studentId).orElse(new Avatar());
+        var avatar = avatarRepository.findByStudentId(studentId).orElse(new Avatar());
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType(avatar.getMediaType()));
+        headers.setContentLength(avatar.getData().length);
+        return avatarMapper.toAvatarDto(avatar);
+    }
+
+    public void findAvatar(Long id, HttpServletResponse response) throws IOException {
+        Optional<Avatar> avatar = avatarRepository.findById(id);
+        Path path = Path.of(avatar.get().getFilePath());
+        try (InputStream is = Files.newInputStream(path);
+             OutputStream os = response.getOutputStream();) {
+            response.setStatus(200);
+            response.setContentType(avatar.get().getMediaType());
+            response.setContentLength((int) avatar.get().getFileSize());
+            is.transferTo(os);
+        }
     }
 
     private byte[] generateImagePreview(Path filePath) throws IOException {
@@ -96,7 +109,7 @@ public class AvatarService {
         return fileName.substring(fileName.lastIndexOf(".") + 1);
     }
 
-    public Collection<Avatar> findAll(int page, int size) {
+    public List<Avatar> findAll(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page - 1, size);
         log.info("Was invoked method for find avatars");
         return avatarRepository.findAll(pageRequest).getContent();

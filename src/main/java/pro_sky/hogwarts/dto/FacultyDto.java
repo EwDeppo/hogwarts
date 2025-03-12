@@ -1,8 +1,11 @@
 package pro_sky.hogwarts.dto;
 
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class FacultyDto {
     private Long id;
     private String name;

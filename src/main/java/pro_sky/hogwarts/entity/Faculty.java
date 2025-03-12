@@ -9,7 +9,7 @@ import java.util.Collection;
 
 @Setter
 @Getter
-@Entity
+@Entity(name = "faculty")
 @JsonIgnoreProperties(value = "students")
 @NoArgsConstructor
 @AllArgsConstructor

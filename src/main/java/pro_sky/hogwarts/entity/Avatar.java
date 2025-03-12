@@ -3,7 +3,7 @@ package pro_sky.hogwarts.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Entity
+@Entity(name = "avatar")
 @Setter
 @Getter
 @NoArgsConstructor
